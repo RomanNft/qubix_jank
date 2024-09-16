@@ -2,89 +2,47 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Clean Workspace') {
             steps {
-                // Checkout the code from the repository
-                checkout scm
+                cleanWs()
             }
         }
 
-        stage('Build') {
+        stage('Run Setup Script') {
             steps {
-                // Build the client and server applications
                 script {
-                    // Build the client
-                    dir('facebook-client') {
-                        sh 'npm install'
-                        sh 'npm run build'
-                    }
+                    sh '''
+                    # Перехід до директорії з проектом
+                    cd /home/roman/push
 
-                    // Build the server
-                    dir('facebook-server') {
-                        sh 'dotnet restore'
-                        sh 'dotnet build --configuration Release'
-                    }
+                    # Виконання скрипту setup.sh
+                    bash ./setup.sh
+                    '''
                 }
             }
         }
 
-        stage('Test') {
+        stage('Check Container Status') {
             steps {
-                // Run tests for the server application
                 script {
-                    dir('facebook-server') {
-                        sh 'dotnet test --configuration Release'
-                    }
-                }
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                // Build Docker images for client and server
-                script {
-                    // Build client Docker image
-                    dir('facebook-client') {
-                        sh 'docker build -t roman2447/facebook-client:latest .'
-                    }
-
-                    // Build server Docker image
-                    dir('facebook-server') {
-                        sh 'docker build -t roman2447/facebook-server:latest .'
-                    }
-                }
-            }
-        }
-
-        stage('Docker Push') {
-            steps {
-                // Push Docker images to Docker Hub
-                script {
-                    // Push client Docker image
-                    sh 'docker push roman2447/facebook-client:latest'
-
-                    // Push server Docker image
-                    sh 'docker push roman2447/facebook-server:latest'
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                // Deploy the application using Docker Compose
-                script {
-                    sh 'docker-compose up -d'
+                    sh '''
+                    # Перевірка статусу контейнерів
+                    docker-compose ps
+                    '''
                 }
             }
         }
     }
 
     post {
+        always {
+            echo 'Pipeline finished.'
+        }
         success {
-            echo 'Pipeline succeeded!'
+            echo 'Pipeline succeeded.'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'Pipeline failed.'
         }
     }
 }
