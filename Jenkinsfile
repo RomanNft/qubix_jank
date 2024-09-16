@@ -12,8 +12,6 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    # Перехід до директорії з проектом
-                    cd /home/roman/push
 
                     # Виконання скрипту setup.sh
                     bash ./setup.sh
