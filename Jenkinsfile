@@ -6,6 +6,18 @@ pipeline {
     }
     
     stages {
+        stage('Check Credentials') {
+            steps {
+                script {
+                    if (DOCKERHUB_CREDENTIALS == null) {
+                        error "Credentials 'dockerhub-credentials-id' not found. Please add them to Jenkins."
+                    } else {
+                        echo "Credentials found: ${DOCKERHUB_CREDENTIALS}"
+                    }
+                }
+            }
+        }
+        
         stage('Build and Push Images') {
             steps {
                 script {
