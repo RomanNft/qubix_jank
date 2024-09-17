@@ -10,6 +10,7 @@ pipeline {
         stage('Setup') {
             steps {
                 checkout scm
+                sh 'chmod +x ./setup.sh'
                 sh './setup.sh'
             }
         }
