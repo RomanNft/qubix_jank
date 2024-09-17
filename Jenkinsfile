@@ -1,61 +1,69 @@
 pipeline {
     agent any
 
-    options {
-        skipDefaultCheckout()
-        disableConcurrentBuilds()
+    environment {
+        DOCKER_HUB_REPO = 'roman2447'
+        DOCKER_HUB_CREDENTIALS = 'docker-hub-credentials'
     }
 
     stages {
-        stage('Setup') {
+        stage('Checkout') {
             steps {
-                checkout scm
-                // Install Docker
-                sh '''
-                    if ! command -v docker &> /dev/null
-                    then
-                        echo "Docker could not be found, installing..."
-                        curl -fsSL https://get.docker.com -o get-docker.sh
-                        sh get-docker.sh
-                        sudo usermod -aG docker jenkins
-                    fi
-                '''
-                // Download and make docker-compose executable
-                sh '''
-                    curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
-                    chmod +x docker-compose
-                '''
-                sh 'chmod +x ./setup.sh'
-                sh './setup.sh'
+                // Checking out the code from Git repository
+                git branch: 'main', url: 'https://github.com/RomanNft/qwqaz'
             }
         }
 
-        stage('Build and Push') {
+        stage('Build facebook-client') {
             steps {
-                dir('facebook-client') {
-                    sh 'docker build -t roman2447/facebook-client:latest .'
-                    sh 'docker push roman2447/facebook-client:latest'
-                }
-                dir('facebook-server') {
-                    sh 'docker build -t roman2447/facebook-server:latest .'
-                    sh 'docker push roman2447/facebook-server:latest'
+                script {
+                    docker.build("${DOCKER_HUB_REPO}/facebook-client:latest", './facebook-client')
                 }
             }
         }
 
-        stage('Migration') {
+        stage('Build facebook-server') {
             steps {
-                dir('facebook-server') {
-                    sh 'docker build -f Dockerfile_MIGRATION -t roman2447/facebook-server-migration:latest .'
-                    sh 'docker push roman2447/facebook-server-migration:latest'
+                script {
+                    docker.build("${DOCKER_HUB_REPO}/facebook-server:latest", './facebook-server')
                 }
             }
         }
 
-        stage('Compose Up') {
+        stage('Push to Docker Hub') {
             steps {
-                sh 'docker-compose up --build'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
+                        docker.image("${DOCKER_HUB_REPO}/facebook-client:latest").push()
+                        docker.image("${DOCKER_HUB_REPO}/facebook-server:latest").push()
+                    }
+                }
             }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Run docker-compose to deploy all services
+                    sh 'docker-compose down'
+                    sh 'docker-compose up --build -d'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up...'
+            sh 'docker-compose down'
+        }
+
+        success {
+            echo 'Deployment was successful!'
+        }
+
+        failure {
+            echo 'Build or Deployment failed!'
         }
     }
 }
