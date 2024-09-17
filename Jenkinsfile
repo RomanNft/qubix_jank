@@ -10,9 +10,11 @@ pipeline {
         stage('Setup') {
             steps {
                 checkout scm
-                sh 'curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose'
-                sh 'chmod +x docker-compose'
-                sh './docker-compose --version'
+                // Download and make docker-compose executable
+                sh '''
+                    curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
+                    chmod +x docker-compose
+                '''
                 sh 'chmod +x ./setup.sh'
                 sh './setup.sh'
             }
