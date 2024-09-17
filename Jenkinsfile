@@ -8,18 +8,19 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from the repository
-                git 'https://github.com/RomanNft/qwqaz'
+                script {
+                    // Checkout the code from the repository
+                    git branch: 'main', url: 'https://github.com/RomanNft/qwqaz'
+                }
             }
         }
 
         stage('Build Docker Images') {
             steps {
                 script {
-                    // Build the Docker images for facebook-client, facebook-server, and migration
+                    // Build the Docker images for facebook-client and facebook-server
                     docker.build('roman2447/facebook-client:latest', 'facebook-client')
                     docker.build('roman2447/facebook-server:latest', 'facebook-server')
-                    docker.build('roman2447/facebook-migration:latest', 'facebook-server', '-f Dockerfile_MIGRATION')
                 }
             }
         }
@@ -31,7 +32,6 @@ pipeline {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
                         docker.image('roman2447/facebook-client:latest').push('latest')
                         docker.image('roman2447/facebook-server:latest').push('latest')
-                        docker.image('roman2447/facebook-migration:latest').push('latest')
                     }
                 }
             }
