@@ -1,66 +1,55 @@
-pipeline {
-    agent any
+// Groovy Jenkinsfile
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
-        GIT_REPO = 'https://github.com/RomanNft/faces2'
-        IMAGE_CLIENT = 'roman2447/facebook-client:latest'
-        IMAGE_SERVER = 'roman2447/facebook-server:latest'
+properties([disableConcurrentBuilds()])
+
+pipeline {
+    agent {
+        label 'docker'
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+        timestamps()
     }
 
     stages {
-        stage('Checkout SCM') {
+        stage("Checkout") {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: env.GIT_REPO]])
+                echo 'Checking out the source code ...'
+                checkout scm
             }
         }
 
-        stage('Check Credentials') {
+        stage("Build and Push Docker Images") {
             steps {
+                echo 'Building and pushing docker images ...'
                 script {
-                    echo "Credentials found: ${DOCKERHUB_CREDENTIALS}"
-                }
-            }
-        }
-
-        stage('Build and Push Images') {
-            steps {
-                script {
-                    withDockerRegistry([credentialsId: 'dockerhub-credentials-id', url: '']) {
-                        sh "docker build -t ${IMAGE_CLIENT} ./facebook-client"
-                        sh "docker push ${IMAGE_CLIENT}"
-
-                        sh "docker build -t ${IMAGE_SERVER} ./facebook-server"
-                        sh "docker push ${IMAGE_SERVER}"
+                    withCredentials([usernamePassword(credentialsId: 'DockerHub-Credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh '''
+                        docker login -u $USERNAME -p $PASSWORD
+                        docker-compose build
+                        docker-compose push
+                        '''
                     }
                 }
             }
         }
 
-        stage('Run Migrations') {
+        stage("Deploy with Docker Compose") {
             steps {
-                script {
-                    sh "docker-compose -f docker-compose.yaml up -d db"
-                    sh "docker-compose -f docker-compose.yaml run --rm migration"
-                }
-            }
-        }
-
-        stage('Deploy with Docker Compose') {
-            steps {
-                script {
-                    sh "docker-compose -f docker-compose.yaml up -d"
-                }
+                echo 'Deploying with docker-compose ...'
+                sh '''
+                docker-compose down || true
+                docker-compose up -d
+                '''
             }
         }
     }
 
     post {
-        failure {
-            echo 'Pipeline failed'
-        }
-        success {
-            echo 'Pipeline succeeded'
+        always {
+            echo 'Cleaning up ...'
+            sh 'docker-compose down || true'
         }
     }
 }
