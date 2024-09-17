@@ -1,52 +1,75 @@
-// Jenkinsfile
-
 pipeline {
     agent any
 
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
-        timestamps()
+    environment {
+        DOCKER_IMAGE_CLIENT = "roman2447/facebook-client:latest"
+        DOCKER_IMAGE_SERVER = "roman2447/facebook-server:latest"
+        DOCKER_IMAGE_MIGRATION = "roman2447/facebook-migration:latest"
+        DOCKER_IMAGE_DB = "postgres:latest"
+        DOCKER_IMAGE_JENKINS = "jenkins/jenkins:lts"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Build') {
             steps {
-                echo 'Checking out the source code...'
-                checkout scm
+                echo 'Building the application...'
+                script {
+                    // Build the client application
+                    dir('facebook-client') {
+                        sh 'docker build -t $DOCKER_IMAGE_CLIENT .'
+                    }
+
+                    // Build the server application
+                    dir('facebook-server') {
+                        sh 'docker build -t $DOCKER_IMAGE_SERVER .'
+                        sh 'docker build -f Dockerfile_MIGRATION -t $DOCKER_IMAGE_MIGRATION .'
+                    }
+                }
             }
         }
 
-        stage('Setup and Build') {
+        stage('Test') {
             steps {
-                echo 'Running setup script and building the project...'
-                sh './setup.sh'
+                echo 'Running tests...'
+                script {
+                    // Add your test commands here
+                    // For example, you can run unit tests or integration tests
+                    // sh 'npm test'
+                    // sh 'dotnet test'
+                }
             }
         }
 
-        stage('Run Docker Compose') {
+        stage('Deploy') {
             steps {
-                echo 'Running Docker Compose...'
-                sh 'docker-compose up -d --build'
+                echo 'Deploying the application...'
+                script {
+                    // Start the Docker Compose services
+                    sh 'docker-compose up -d'
+                }
             }
         }
 
         stage('Cleanup') {
             steps {
                 echo 'Cleaning up...'
-                sh 'docker-compose down'
+                script {
+                    // Stop and remove Docker containers
+                    sh 'docker-compose down'
+
+                    // Remove Docker images
+                    sh 'docker rmi $DOCKER_IMAGE_CLIENT $DOCKER_IMAGE_SERVER $DOCKER_IMAGE_MIGRATION'
+                }
             }
         }
     }
 
     post {
-        always {
-            echo 'Pipeline completed.'
-        }
         success {
-            echo 'Pipeline succeeded.'
+            echo 'Pipeline succeeded!'
         }
         failure {
-            echo 'Pipeline failed.'
+            echo 'Pipeline failed!'
         }
     }
 }
