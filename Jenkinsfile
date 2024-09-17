@@ -17,7 +17,7 @@ pipeline {
         stage('Build facebook-client') {
             steps {
                 script {
-                    docker.build("${DOCKER_HUB_REPO}/facebook-client:latest", './facebook-client')
+                    sh "docker build -t ${DOCKER_HUB_REPO}/facebook-client:latest ./facebook-client"
                 }
             }
         }
@@ -25,7 +25,7 @@ pipeline {
         stage('Build facebook-server') {
             steps {
                 script {
-                    docker.build("${DOCKER_HUB_REPO}/facebook-server:latest", './facebook-server')
+                    sh "docker build -t ${DOCKER_HUB_REPO}/facebook-server:latest ./facebook-server"
                 }
             }
         }
@@ -33,9 +33,9 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
-                        docker.image("${DOCKER_HUB_REPO}/facebook-client:latest").push()
-                        docker.image("${DOCKER_HUB_REPO}/facebook-server:latest").push()
+                    withDockerRegistry(credentialsId: DOCKER_HUB_CREDENTIALS, url: 'https://index.docker.io/v1/') {
+                        sh "docker push ${DOCKER_HUB_REPO}/facebook-client:latest"
+                        sh "docker push ${DOCKER_HUB_REPO}/facebook-server:latest"
                     }
                 }
             }
