@@ -1,11 +1,7 @@
-// Groovy Jenkinsfile
-
-properties([disableConcurrentBuilds()])
+// Jenkinsfile
 
 pipeline {
-    agent {
-        label 'docker'
-    }
+    agent any
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
@@ -13,43 +9,44 @@ pipeline {
     }
 
     stages {
-        stage("Checkout") {
+        stage('Checkout') {
             steps {
-                echo 'Checking out the source code ...'
+                echo 'Checking out the source code...'
                 checkout scm
             }
         }
 
-        stage("Build and Push Docker Images") {
+        stage('Setup and Build') {
             steps {
-                echo 'Building and pushing docker images ...'
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'DockerHub-Credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh '''
-                        docker login -u $USERNAME -p $PASSWORD
-                        docker-compose build
-                        docker-compose push
-                        '''
-                    }
-                }
+                echo 'Running setup script and building the project...'
+                sh './setup.sh'
             }
         }
 
-        stage("Deploy with Docker Compose") {
+        stage('Run Docker Compose') {
             steps {
-                echo 'Deploying with docker-compose ...'
-                sh '''
-                docker-compose down || true
-                docker-compose up -d
-                '''
+                echo 'Running Docker Compose...'
+                sh 'docker-compose up -d --build'
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                echo 'Cleaning up...'
+                sh 'docker-compose down'
             }
         }
     }
 
     post {
         always {
-            echo 'Cleaning up ...'
-            sh 'docker-compose down || true'
+            echo 'Pipeline completed.'
+        }
+        success {
+            echo 'Pipeline succeeded.'
+        }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
