@@ -2,30 +2,22 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_REPO = 'roman2447'
-        DOCKER_HUB_CREDENTIALS = 'docker-hub-credentials'
+        DOCKER_HUB_CREDENTIALS = credentials('70d58f4e-0207-4fe0-86a8-dfaf74688d05')  // Облікові дані Docker Hub
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checking out the code from Git repository
-                git branch: 'main', url: 'https://github.com/RomanNft/qwqaz'
+                // Клонування репозиторію
+                git 'https://github.com/RomanNft/qwqaz.git'
             }
         }
 
-        stage('Build facebook-client') {
+        stage('Build Docker Images') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_HUB_REPO}/facebook-client:latest ./facebook-client"
-                }
-            }
-        }
-
-        stage('Build facebook-server') {
-            steps {
-                script {
-                    sh "docker build -t ${DOCKER_HUB_REPO}/facebook-server:latest ./facebook-server"
+                    // Створюємо Docker образи для клієнта та сервера
+                    sh 'docker-compose -f docker-compose.yaml build'
                 }
             }
         }
@@ -33,20 +25,24 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: DOCKER_HUB_CREDENTIALS, url: 'https://index.docker.io/v1/') {
-                        sh "docker push ${DOCKER_HUB_REPO}/facebook-client:latest"
-                        sh "docker push ${DOCKER_HUB_REPO}/facebook-server:latest"
-                    }
+                    // Логін в Docker Hub
+                    sh "echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin"
+
+                    // Пуш Docker образів на Docker Hub
+                    sh 'docker tag facebook-client:latest roman2447/facebook-client:latest'
+                    sh 'docker tag facebook-server:latest roman2447/facebook-server:latest'
+
+                    sh 'docker push roman2447/facebook-client:latest'
+                    sh 'docker push roman2447/facebook-server:latest'
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Run Docker Compose') {
             steps {
                 script {
-                    // Run docker-compose to deploy all services
-                    sh 'docker-compose down'
-                    sh 'docker-compose up --build -d'
+                    // Запуск сервісів за допомогою Docker Compose
+                    sh 'docker-compose -f docker-compose.yaml up -d'
                 }
             }
         }
@@ -54,16 +50,14 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning up...'
-            sh 'docker-compose down'
+            // Очищення контейнерів та мереж Docker після виконання
+            sh 'docker-compose -f docker-compose.yaml down'
         }
-
         success {
             echo 'Deployment was successful!'
         }
-
         failure {
-            echo 'Build or Deployment failed!'
+            echo 'Deployment failed.'
         }
     }
 }
