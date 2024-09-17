@@ -9,18 +9,7 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                dir('.') {
-                    // Check if setup.sh exists
-                    script {
-                        if (!fileExists('setup.sh')) {
-                            error "setup.sh not found in the root directory"
-                        }
-                    }
-                    // Set execute permissions on setup.sh
-                    sh 'chmod +x setup.sh'
-                    // Run setup.sh
-                    sh './setup.sh'
-                }
+                sh './setup.sh'
             }
         }
 
