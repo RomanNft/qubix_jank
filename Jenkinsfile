@@ -1,37 +1,37 @@
 pipeline {
     agent any
+
     environment {
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id'
+        DOCKER_CREDENTIALS_ID = 'DockerHub-Credential'
     }
+
     stages {
-        stage('Build') {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from the repository
+                git 'https://github.com/RomanNft/qwqaz'
+            }
+        }
+
+        stage('Build Docker Images') {
             steps {
                 script {
-                    docker.build('qwqaz-migration', '-f Dockerfile_MIGRATION .')
-                    docker.build('roman2447/facebook-server', '-f Dockerfile .')
-                    docker.build('facebook-client', '-f Dockerfile-client .')
+                    // Build the Docker images for facebook-client, facebook-server, and migration
+                    docker.build('roman2447/facebook-client:latest', 'facebook-client')
+                    docker.build('roman2447/facebook-server:latest', 'facebook-server')
+                    docker.build('roman2447/facebook-migration:latest', 'facebook-server', '-f Dockerfile_MIGRATION')
                 }
             }
         }
 
-        stage('Push') {
+        stage('Push Docker Images') {
             steps {
                 script {
+                    // Push Docker images to Docker Hub
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
-                        docker.image('qwqaz-migration').push('latest')
-                        docker.image('roman2447/facebook-server').push('latest')
-                        docker.image('facebook-client').push('latest')
-                    }
-                }
-            }
-        }
-
-        stage('Migrate') {
-            steps {
-                script {
-                    docker.image('qwqaz-migration').inside {
-                        sh './wait-for-postgres.sh'
-                        sh 'dotnet ef database update'
+                        docker.image('roman2447/facebook-client:latest').push('latest')
+                        docker.image('roman2447/facebook-server:latest').push('latest')
+                        docker.image('roman2447/facebook-migration:latest').push('latest')
                     }
                 }
             }
@@ -40,22 +40,34 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    docker.image('roman2447/facebook-server').run('-d --name facebook-server')
+                    // Run Docker Compose to deploy the services
+                    sh 'docker-compose up --build -d'
                 }
             }
         }
 
-        stage('Start Frontend') {
+        stage('Cleanup') {
             steps {
                 script {
-                    docker.image('facebook-client').run('-d --name facebook-client')
+                    // Optionally, you might want to clean up Docker images or containers
+                    sh 'docker system prune -f'
                 }
             }
         }
     }
+
     post {
         always {
-            sh 'docker system prune -af'
+            // Archive Docker logs or other necessary artifacts
+            archiveArtifacts artifacts: 'facebook-client/logs/**/*, facebook-server/logs/**/*', allowEmptyArchive: true
+        }
+        success {
+            // Actions on successful build
+            echo 'Build and deployment were successful!'
+        }
+        failure {
+            // Actions on failed build
+            echo 'Build or deployment failed.'
         }
     }
 }
