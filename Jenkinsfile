@@ -9,7 +9,9 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                sh './setup.sh'
+                dir('.') {
+                    sh './setup.sh'
+                }
             }
         }
 
