@@ -32,7 +32,7 @@ chmod +x wait-for-postgres.sh
 # Navigate back to the root directory
 cd ..
 
-# Build and run the Docker containers
-docker-compose up --build -d
+# Build and run the Docker containers using the full path to docker-compose
+./docker-compose up --build -d
 
 # Additional setup steps can be added here
