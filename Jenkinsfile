@@ -10,6 +10,16 @@ pipeline {
         stage('Setup') {
             steps {
                 checkout scm
+                // Install Docker
+                sh '''
+                    if ! command -v docker &> /dev/null
+                    then
+                        echo "Docker could not be found, installing..."
+                        curl -fsSL https://get.docker.com -o get-docker.sh
+                        sh get-docker.sh
+                        sudo usermod -aG docker jenkins
+                    fi
+                '''
                 // Download and make docker-compose executable
                 sh '''
                     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
