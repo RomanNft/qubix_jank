@@ -9,6 +9,7 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
+                checkout scm
                 sh './setup.sh'
             }
         }
