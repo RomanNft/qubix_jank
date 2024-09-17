@@ -7,6 +7,12 @@ pipeline {
     }
 
     stages {
+        stage('Setup') {
+            steps {
+                sh './setup.sh'
+            }
+        }
+
         stage('Build and Push') {
             steps {
                 dir('facebook-client') {
@@ -26,12 +32,6 @@ pipeline {
                     sh 'docker build -f Dockerfile_MIGRATION -t roman2447/facebook-server-migration:latest .'
                     sh 'docker push roman2447/facebook-server-migration:latest'
                 }
-            }
-        }
-
-        stage('Setup') {
-            steps {
-                sh './setup.sh'
             }
         }
 
