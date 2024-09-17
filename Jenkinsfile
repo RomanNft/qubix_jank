@@ -16,13 +16,13 @@ pipeline {
                 script {
                     // Build the client application
                     dir('facebook-client') {
-                        sh 'docker build -t $DOCKER_IMAGE_CLIENT .'
+                        sh "docker build -t $DOCKER_IMAGE_CLIENT ."
                     }
 
                     // Build the server application
                     dir('facebook-server') {
-                        sh 'docker build -t $DOCKER_IMAGE_SERVER .'
-                        sh 'docker build -f Dockerfile_MIGRATION -t $DOCKER_IMAGE_MIGRATION .'
+                        sh "docker build -t $DOCKER_IMAGE_SERVER ."
+                        sh "docker build -f Dockerfile_MIGRATION -t $DOCKER_IMAGE_MIGRATION ."
                     }
                 }
             }
@@ -58,7 +58,7 @@ pipeline {
                     sh 'docker-compose down'
 
                     // Remove Docker images
-                    sh 'docker rmi $DOCKER_IMAGE_CLIENT $DOCKER_IMAGE_SERVER $DOCKER_IMAGE_MIGRATION'
+                    sh "docker rmi $DOCKER_IMAGE_CLIENT $DOCKER_IMAGE_SERVER $DOCKER_IMAGE_MIGRATION"
                 }
             }
         }
