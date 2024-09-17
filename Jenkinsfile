@@ -1,75 +1,44 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE_CLIENT = "roman2447/facebook-client:latest"
-        DOCKER_IMAGE_SERVER = "roman2447/facebook-server:latest"
-        DOCKER_IMAGE_MIGRATION = "roman2447/facebook-migration:latest"
-        DOCKER_IMAGE_DB = "postgres:latest"
-        DOCKER_IMAGE_JENKINS = "jenkins/jenkins:lts"
+    options {
+        skipDefaultCheckout()
+        disableConcurrentBuilds()
     }
 
     stages {
-        stage('Build') {
+        stage('Build and Push') {
             steps {
-                echo 'Building the application...'
-                script {
-                    // Build the client application
-                    dir('facebook-client') {
-                        sh "docker build -t $DOCKER_IMAGE_CLIENT ."
-                    }
-
-                    // Build the server application
-                    dir('facebook-server') {
-                        sh "docker build -t $DOCKER_IMAGE_SERVER ."
-                        sh "docker build -f Dockerfile_MIGRATION -t $DOCKER_IMAGE_MIGRATION ."
-                    }
+                dir('facebook-client') {
+                    sh 'docker build -t roman2447/facebook-client:latest .'
+                    sh 'docker push roman2447/facebook-client:latest'
+                }
+                dir('facebook-server') {
+                    sh 'docker build -t roman2447/facebook-server:latest .'
+                    sh 'docker push roman2447/facebook-server:latest'
                 }
             }
         }
 
-        stage('Test') {
+        stage('Migration') {
             steps {
-                echo 'Running tests...'
-                script {
-                    // Add your test commands here
-                    // For example, you can run unit tests or integration tests
-                    // sh 'npm test'
-                    // sh 'dotnet test'
+                dir('facebook-server') {
+                    sh 'docker build -f Dockerfile_MIGRATION -t roman2447/facebook-server-migration:latest .'
+                    sh 'docker push roman2447/facebook-server-migration:latest'
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Setup') {
             steps {
-                echo 'Deploying the application...'
-                script {
-                    // Start the Docker Compose services
-                    sh 'docker-compose up -d'
-                }
+                sh './setup.sh'
             }
         }
 
-        stage('Cleanup') {
+        stage('Compose Up') {
             steps {
-                echo 'Cleaning up...'
-                script {
-                    // Stop and remove Docker containers
-                    sh 'docker-compose down'
-
-                    // Remove Docker images
-                    sh "docker rmi $DOCKER_IMAGE_CLIENT $DOCKER_IMAGE_SERVER $DOCKER_IMAGE_MIGRATION"
-                }
+                sh 'docker-compose up --build'
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed!'
         }
     }
 }
