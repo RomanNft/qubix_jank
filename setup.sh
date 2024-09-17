@@ -1,45 +1,28 @@
 #!/bin/bash
 
-# Ensure the script exits on any command failure
-set -e
+# Встановлення Docker та Docker Compose
+sudo apt install docker.io -y
+sudo snap install docker
 
-# Navigate to the correct directory
-cd "$(dirname "$0")"
+# Встановлення .NET SDK
+sudo snap install dotnet-sdk --classic
+sudo apt-get update
+sudo apt-get install -y apt-transport-https
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-8.0
 
-# Check if Docker is installed
-if ! command -v docker &> /dev/null
-then
-    echo "Docker could not be found, please install Docker."
-    exit 1
-fi
+# Встановлення postgresql-client
+sudo apt-get install -y postgresql-client
 
-# Check if .NET SDK is installed
-if ! command -v dotnet &> /dev/null
-then
-    echo ".NET SDK could not be found, installing..."
-    # Add .NET installation steps here
-    # Example:
-    # wget -q https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-    # chmod +x dotnet-install.sh
-    # ./dotnet-install.sh --channel 6.0
-fi
+# Встановлення dotnet-ef
+dotnet tool install --global dotnet-ef
+export PATH="$PATH:/root/.dotnet/tools"
 
-# Navigate to the facebook-server directory
-cd facebook-server
-
-# Check if wait-for-postgres.sh exists
-if [ ! -f "wait-for-postgres.sh" ]; then
-    echo "wait-for-postgres.sh not found in the facebook-server directory"
-    exit 1
-fi
-
-# Ensure the required scripts have execute permissions
+# Виведення шляху для перевірки
+echo $PATH
+# Права на використання
+cd /home/roman/facebook-server/
 chmod +x wait-for-postgres.sh
-
-# Navigate back to the root directory
-cd ..
-
-# Build and run the Docker containers using the full path to docker-compose
-./docker-compose up --build -d
-
-# Additional setup steps can be added here
+# Запуск Docker Compose для всіх сервісів
+cd /home/roman
+docker-compose up --build
