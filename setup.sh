@@ -17,14 +17,20 @@ then
     # ./dotnet-install.sh --channel 6.0
 fi
 
+# Navigate to the facebook-server directory
+cd facebook-server
+
 # Check if wait-for-postgres.sh exists
 if [ ! -f "wait-for-postgres.sh" ]; then
-    echo "wait-for-postgres.sh not found in the current directory"
+    echo "wait-for-postgres.sh not found in the facebook-server directory"
     exit 1
 fi
 
 # Ensure the required scripts have execute permissions
 chmod +x wait-for-postgres.sh
+
+# Navigate back to the root directory
+cd ..
 
 # Build and run the Docker containers
 docker-compose up --build -d
