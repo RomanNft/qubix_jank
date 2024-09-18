@@ -53,16 +53,13 @@ services:
       sh -c "dotnet tool install --global dotnet-ef && /app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release'"
 
   jenkins:
-    build:
-      context: .
-      dockerfile: Dockerfile  # Використовуйте ваш Dockerfile
+    image: jenkins/jenkins:lts
     container_name: jenkins
     ports:
       - "8080:8080"
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock  # Додайте це монтування
     networks:
       - jenkins_network
 
