@@ -22,7 +22,7 @@ pipeline {
             steps {
                 script {
                     // Build combined Docker image
-                    sh "docker build --no-cache -t roman2447/website:1.1 ."
+                    sh "docker build --no-cache -t ${DOCKERHUB_CREDENTIALS_USR}/website:1.1 ."
                 }
             }
         }
@@ -31,10 +31,10 @@ pipeline {
             steps {
                 script {
                     // Push combined Docker image to Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'DockerHub-Credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: 'my_service_credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh '''
                         docker login -u $USERNAME -p $PASSWORD
-                        docker push roman2447/website:1.1
+                        docker push ${DOCKERHUB_CREDENTIALS_USR}/website:1.1
                         '''
                     }
                 }
@@ -55,7 +55,7 @@ pipeline {
             steps {
                 echo "============= Starting server ================"
                 sh '''
-                docker run -d -p 80:80 --name my_container roman2447/website:1.1
+                docker run -d -p 80:80 --name my_container ${DOCKERHUB_CREDENTIALS_USR}/website:1.1
                 '''
             }
         }
