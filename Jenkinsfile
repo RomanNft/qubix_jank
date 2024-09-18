@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'your-agent-label' // Замініть на потрібний лейбл агента
+        label 'my_service_credentials' // Замініть на потрібний лейбл агента
     }
 
     options {
