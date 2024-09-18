@@ -4,19 +4,9 @@ pipeline {
     environment {
         DOCKER_HUB_REPO = 'roman2447'
         DOCKER_HUB_CREDENTIALS = 'my_service_credentials'
-        PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
-        DOCKER_HOST = "unix:///var/run/docker.sock"
     }
 
     stages {
-        stage('Check Environment') {
-            steps {
-                script {
-                    sh 'env'
-                }
-            }
-        }
-
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/RomanNft/qwqaz'
@@ -26,13 +16,7 @@ pipeline {
         stage('Build facebook-client') {
             steps {
                 script {
-                    try {
-                        sh 'docker --version'
-                        docker.build("${DOCKER_HUB_REPO}/facebook-client:latest", './facebook-client')
-                    } catch (Exception e) {
-                        echo "Failed to build facebook-client: ${e.getMessage()}"
-                        throw e
-                    }
+                    docker.build("${DOCKER_HUB_REPO}/facebook-client:latest", './facebook-client')
                 }
             }
         }
@@ -40,13 +24,7 @@ pipeline {
         stage('Build facebook-server') {
             steps {
                 script {
-                    try {
-                        sh 'docker --version'
-                        docker.build("${DOCKER_HUB_REPO}/facebook-server:latest", './facebook-server')
-                    } catch (Exception e) {
-                        echo "Failed to build facebook-server: ${e.getMessage()}"
-                        throw e
-                    }
+                    docker.build("${DOCKER_HUB_REPO}/facebook-server:latest", './facebook-server')
                 }
             }
         }
@@ -54,14 +32,9 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    try {
-                        docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
-                            docker.image("${DOCKER_HUB_REPO}/facebook-client:latest").push()
-                            docker.image("${DOCKER_HUB_REPO}/facebook-server:latest").push()
-                        }
-                    } catch (Exception e) {
-                        echo "Failed to push to Docker Hub: ${e.getMessage()}"
-                        throw e
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
+                        docker.image("${DOCKER_HUB_REPO}/facebook-client:latest").push()
+                        docker.image("${DOCKER_HUB_REPO}/facebook-server:latest").push()
                     }
                 }
             }
@@ -70,14 +43,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    try {
-                        sh 'docker-compose --version'
-                        sh 'docker-compose down'
-                        sh 'docker-compose up --build -d'
-                    } catch (Exception e) {
-                        echo "Failed to deploy: ${e.getMessage()}"
-                        throw e
-                    }
+                    sh 'docker-compose down'
+                    sh 'docker-compose up --build -d'
                 }
             }
         }
