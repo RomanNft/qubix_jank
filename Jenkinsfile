@@ -1,59 +1,64 @@
-pipeline {
-    agent any
+properties([disableConcurrentBuilds()])
 
-    environment {
-        DOCKER_HUB_REPO = 'roman2447'
-        DOCKER_HUB_CREDENTIALS = 'my_service_credentials'
+pipeline {
+    agent {
+        label ''
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+        timestamps()
     }
 
     stages {
-        stage('Checkout') {
+        stage("Checkout") {
             steps {
-                git branch: 'main', url: 'https://github.com/RomanNft/qwqaz'
+                echo 'Checking out code ...'
+                git 'https://github.com/RomanNft/qwqaz.git'
             }
         }
 
-        stage('Build facebook-client') {
+        stage("Build docker images") {
             steps {
-                script {
-                    docker.build("${DOCKER_HUB_REPO}/facebook-client:latest", './facebook-client')
+                echo 'Building Docker images for client and server ...'
+                sh 'docker build -t roman2447/facebook-client:1.0 ./facebook-client'
+                sh 'docker build -t roman2447/facebook-server:1.0 ./facebook-server'
+            }
+        }
+
+        stage("Docker Login") {
+            steps {
+                echo 'Logging in to Docker Hub ...'
+                withCredentials([usernamePassword(credentialsId: 'DockerHub-Credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh 'docker login -u $USERNAME -p $PASSWORD'
                 }
             }
         }
 
-        stage('Build facebook-server') {
+        stage("Push images to Docker Hub") {
             steps {
-                script {
-                    docker.build("${DOCKER_HUB_REPO}/facebook-server:latest", './facebook-server')
-                }
+                echo 'Pushing images to Docker Hub ...'
+                sh 'docker push roman2447/facebook-client:1.0'
+                sh 'docker push roman2447/facebook-server:1.0'
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage("Stop and remove existing containers") {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
-                        docker.image("${DOCKER_HUB_REPO}/facebook-client:latest").push()
-                        docker.image("${DOCKER_HUB_REPO}/facebook-server:latest").push()
-                    }
-                }
+                echo 'Stopping and removing old containers ...'
+                sh 'docker stop facebook-client || true'
+                sh 'docker rm facebook-client || true'
+                sh 'docker stop facebook-server || true'
+                sh 'docker rm facebook-server || true'
             }
         }
 
-        stage('Deploy') {
+        stage("Run containers") {
             steps {
-                script {
-                    sh 'docker-compose down'
-                    sh 'docker-compose up --build -d'
-                }
+                echo 'Starting new containers ...'
+                sh 'docker run -d -p 5173:80 --name facebook-client roman2447/facebook-client:1.0'
+                sh 'docker run -d -p 5181:80 --name facebook-server roman2447/facebook-server:1.0'
             }
-        }
-    }
-
-    post {
-        always {
-            echo 'Cleaning up...'
-            sh 'docker-compose down'
         }
     }
 }
