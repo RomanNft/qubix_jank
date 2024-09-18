@@ -1,8 +1,6 @@
-properties([disableConcurrentBuilds()])
-
 pipeline {
     agent {
-        label ''
+        label 'your-agent-label' // Замініть на потрібний лейбл агента
     }
 
     options {
@@ -25,13 +23,16 @@ pipeline {
         stage("Create docker image") {
             steps {
                 echo 'Creating docker image ...'
-                sh "/usr/local/bin/docker build --no-cache -t roman2447/website:1.1 ."
+                // Використовуйте правильний шлях до Docker
+                withEnv(["PATH+DOCKER=/usr/bin"]) { 
+                    sh "docker build --no-cache -t roman2447/website:1.1 ."
+                }
             }
         }
 
-        stage("docker login") {
+        stage("Docker login") {
             steps {
-                echo "============= docker login ================"
+                echo "============= Docker login ================"
                 withCredentials([usernamePassword(credentialsId: 'DockerHub-Credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh '''
                     docker login -u $USERNAME -p $PASSWORD
@@ -40,29 +41,35 @@ pipeline {
             }
         }
 
-        stage("docker push") {
+        stage("Docker push") {
             steps {
-                echo "============= pushing image ================"
-                sh "docker push roman2447/website:1.1"
+                echo "============= Pushing image ================"
+                withEnv(["PATH+DOCKER=/usr/bin"]) { 
+                    sh "docker push roman2447/website:1.1"
+                }
             }
         }
 
-        stage("docker stop and remove previous container") {
+        stage("Docker stop and remove previous container") {
             steps {
-                echo "============= stopping and removing previous container ================"
-                sh '''
-                docker stop my_container || true
-                docker rm my_container || true
-                '''
+                echo "============= Stopping and removing previous container ================"
+                withEnv(["PATH+DOCKER=/usr/bin"]) { 
+                    sh '''
+                    docker stop my_container || true
+                    docker rm my_container || true
+                    '''
+                }
             }
         }
 
-        stage("docker run") {
+        stage("Docker run") {
             steps {
-                echo "============= start server ================"
-                sh '''
-                docker run -d -p 80:80 --name my_container roman2447/website:1.1
-                '''
+                echo "============= Starting server ================"
+                withEnv(["PATH+DOCKER=/usr/bin"]) { 
+                    sh '''
+                    docker run -d -p 80:80 --name my_container roman2447/website:1.1
+                    '''
+                }
             }
         }
     }
