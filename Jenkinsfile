@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'my-service_' // Replace with the correct label
+        label 'my_service_' // Replace with the correct label
     }
 
     options {
