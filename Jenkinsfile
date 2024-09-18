@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_HUB_REPO = 'roman2447'
         DOCKER_HUB_CREDENTIALS = 'my_service_credentials'
+        PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+        DOCKER_HOST = "unix:///var/run/docker.sock"
     }
 
     stages {
