@@ -1,80 +1,54 @@
 pipeline {
-    agent any // Використовуємо будь-який доступний агент
-
-    environment {
-        // Визначте змінні середовища для облікових даних DockerHub
-        DOCKERHUB_CREDENTIALS = credentials('my_service_credentials')
-    }
-
+    agent any
     stages {
-        stage('Checkout') {
+        stage("docker login") {
             steps {
-                echo 'Checking out code ...'
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']], // Використовуйте підстановочний знак для імені гілки
-                    userRemoteConfigs: [[url: 'https://github.com/RomanNft/qwqaz.git']]
-                ])
-            }
-        }
-
-        stage('Build Combined Image') {
-            steps {
-                script {
-                    // Build combined Docker image
-                    sh "docker build --no-cache -t ${DOCKERHUB_CREDENTIALS_USR}/facebook-server:latest -f facebook-server/Dockerfile ."
-                    sh "docker build --no-cache -t ${DOCKERHUB_CREDENTIALS_USR}/facebook-client:latest -f facebook-client/Dockerfile ."
-                }
-            }
-        }
-
-        stage('Push Combined Image') {
-            steps {
-                script {
-                    // Push combined Docker image to Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'my_service_credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh '''
-                        docker login -u $USERNAME -p $PASSWORD
-                        docker push ${DOCKERHUB_CREDENTIALS_USR}/facebook-server:latest
-                        docker push ${DOCKERHUB_CREDENTIALS_USR}/facebook-client:latest
-                        '''
+                echo " ============== docker login =================="
+                withCredentials([usernamePassword(credentialsId: 'your-docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    script {
+                        def loginResult = sh(script: "docker login -u $USERNAME -p $PASSWORD", returnStatus: true)
+                        if (loginResult != 0) {
+                            error "Failed to log in to Docker Hub. Exit code: ${loginResult}"
+                        }
                     }
                 }
+                echo " ============== docker login completed =================="
             }
         }
-
-        stage('Docker stop and remove previous container') {
+        stage('Build and Push facebook-client') {
             steps {
-                echo "============= Stopping and removing previous container ================"
-                sh '''
-                docker stop qwqaz_facebook-server_1 || true
-                docker rm qwqaz_facebook-server_1 || true
-                docker stop qwqaz_facebook-client_1 || true
-                docker rm qwqaz_facebook-client_1 || true
-                '''
+                echo " ============== docker facebook-client =================="
+                dir('facebook-client') {
+                    sh "docker build -t roman2447/facebook-client:latest ."
+                    sh "docker push roman2447/facebook-client:latest"
+                }
+                echo " ============== docker facebook-client completed =================="
             }
         }
-
-        stage('Docker run') {
+        stage('Build and Push facebook-server') {
             steps {
-                echo "============= Starting server ================"
-                sh '''
-                docker-compose up -d
-                '''
+                echo " ============== docker facebook-server =================="
+                dir('facebook-server') {
+                    sh "docker build -t roman2447/facebook-server:latest ."
+                    sh "docker push roman2447/facebook-server:latest"
+                }
+                echo " ============== docker facebook-server completed =================="
             }
         }
-    }
-
-    post {
-        always {
-            echo "Pipeline completed. Cleaning up..."
-            // Додатково, приберіть ресурси тут
+        stage('Build and Push jenkins') {
+            steps {
+                echo " ============== docker jenkins =================="
+                sh "docker build -t roman2447/jenkins:latest ."
+                sh "docker push roman2447/jenkins:latest"
+                echo " ============== docker jenkins completed =================="
+            }
         }
-        success {
-            echo "Pipeline succeeded!"
-        }
-        failure {
-            echo "Pipeline failed!"
+        stage('Run setup script') {
+            steps {
+                echo " ============== Running setup script =================="
+                sh "./setup.sh"
+                echo " ============== Setup script completed =================="
+            }
         }
     }
 }
