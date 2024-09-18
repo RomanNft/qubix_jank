@@ -22,7 +22,8 @@ pipeline {
             steps {
                 script {
                     // Build combined Docker image
-                    sh "docker build --no-cache -t ${DOCKERHUB_CREDENTIALS_USR}/website:1.1 ."
+                    sh "docker build --no-cache -t ${DOCKERHUB_CREDENTIALS_USR}/facebook-server:latest -f facebook-server/Dockerfile ."
+                    sh "docker build --no-cache -t ${DOCKERHUB_CREDENTIALS_USR}/facebook-client:latest -f facebook-client/Dockerfile ."
                 }
             }
         }
@@ -34,7 +35,8 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'my_service_credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         sh '''
                         docker login -u $USERNAME -p $PASSWORD
-                        docker push ${DOCKERHUB_CREDENTIALS_USR}/website:1.1
+                        docker push ${DOCKERHUB_CREDENTIALS_USR}/facebook-server:latest
+                        docker push ${DOCKERHUB_CREDENTIALS_USR}/facebook-client:latest
                         '''
                     }
                 }
@@ -45,8 +47,10 @@ pipeline {
             steps {
                 echo "============= Stopping and removing previous container ================"
                 sh '''
-                docker stop my_container || true
-                docker rm my_container || true
+                docker stop qwqaz_facebook-server_1 || true
+                docker rm qwqaz_facebook-server_1 || true
+                docker stop qwqaz_facebook-client_1 || true
+                docker rm qwqaz_facebook-client_1 || true
                 '''
             }
         }
@@ -55,7 +59,7 @@ pipeline {
             steps {
                 echo "============= Starting server ================"
                 sh '''
-                docker run -d -p 80:80 --name my_container ${DOCKERHUB_CREDENTIALS_USR}/website:1.1
+                docker-compose up -d
                 '''
             }
         }
