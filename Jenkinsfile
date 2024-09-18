@@ -7,6 +7,14 @@ pipeline {
     }
 
     stages {
+        stage('Check Environment') {
+            steps {
+                script {
+                    sh 'env'
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/RomanNft/qwqaz'
