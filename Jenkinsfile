@@ -1,11 +1,16 @@
 pipeline {
     agent {
-        label 'my_service_credentials' // Replace with the correct label
+        label 'my_service_credentials' // Ensure this label exists in your Jenkins environment
     }
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
         timestamps()
+    }
+
+    environment {
+        // Define environment variables for DockerHub credentials
+        DOCKERHUB_CREDENTIALS = credentials('DockerHub-Credentials')
     }
 
     stages {
@@ -14,7 +19,7 @@ pipeline {
                 echo 'Checking out code ...'
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: 'refs/heads/main']],
+                    branches: [[name: '*/main']], // Use wildcard for branch name
                     userRemoteConfigs: [[url: 'https://github.com/RomanNft/qwqaz.git']]
                 ])
             }
@@ -62,6 +67,19 @@ pipeline {
                 docker run -d -p 80:80 --name my_container roman2447/website:1.1
                 '''
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline completed. Cleaning up..."
+            // Optionally, clean up any resources here
+        }
+        success {
+            echo "Pipeline succeeded!"
+        }
+        failure {
+            echo "Pipeline failed!"
         }
     }
 }
