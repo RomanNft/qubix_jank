@@ -1,11 +1,24 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_COMPOSE = '/usr/local/bin/docker-compose'
-        DOCKER_IMAGE_CLIENT = 'roman2447/facebook-client:latest'
-        DOCKER_IMAGE_SERVER = 'roman2447/facebook-server:latest'
+    stages {
+        stage('Build') {
+            steps {
+                sh '/usr/local/bin/docker-compose build'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh '/usr/local/bin/docker-compose test'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '/usr/local/bin/docker-compose deploy'
+            }
+        }
     }
+}
 
     stages {
         stage('Build') {
