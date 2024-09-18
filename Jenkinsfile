@@ -14,50 +14,55 @@ pipeline {
         stage("Checkout") {
             steps {
                 echo 'Checking out code ...'
-                git 'https://github.com/RomanNft/qwqaz.git'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'refs/heads/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/RomanNft/qwqaz.git']]
+                ])
             }
         }
 
-        stage("Build docker images") {
+        stage("Create docker image") {
             steps {
-                echo 'Building Docker images for client and server ...'
-                sh 'docker build -t roman2447/facebook-client:1.0 ./facebook-client'
-                sh 'docker build -t roman2447/facebook-server:1.0 ./facebook-server'
+                echo 'Creating docker image ...'
+                sh "docker build --no-cache -t roman2447/website:1.1 ."
             }
         }
 
-        stage("Docker Login") {
+        stage("docker login") {
             steps {
-                echo 'Logging in to Docker Hub ...'
+                echo "============= docker login ================"
                 withCredentials([usernamePassword(credentialsId: 'DockerHub-Credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh 'docker login -u $USERNAME -p $PASSWORD'
+                    sh '''
+                    docker login -u $USERNAME -p $PASSWORD
+                    '''
                 }
             }
         }
 
-        stage("Push images to Docker Hub") {
+        stage("docker push") {
             steps {
-                echo 'Pushing images to Docker Hub ...'
-                sh 'docker push roman2447/facebook-client:1.0'
-                sh 'docker push roman2447/facebook-server:1.0'
+                echo "============= pushing image ================"
+                sh "docker push roman2447/website:1.1"
             }
         }
 
-        stage("Stop and remove existing containers") {
+        stage("docker stop and remove previous container") {
             steps {
-                echo 'Stopping and removing old containers ...'
-                sh 'docker stop facebook-client || true'
-                sh 'docker rm facebook-client || true'
-                sh 'docker stop facebook-server || true'
-                sh 'docker rm facebook-server || true'
+                echo "============= stopping and removing previous container ================"
+                sh '''
+                docker stop my_container || true
+                docker rm my_container || true
+                '''
             }
         }
 
-        stage("Run containers") {
+        stage("docker run") {
             steps {
-                echo 'Starting new containers ...'
-                sh 'docker run -d -p 5173:80 --name facebook-client roman2447/facebook-client:1.0'
-                sh 'docker run -d -p 5181:80 --name facebook-server roman2447/facebook-server:1.0'
+                echo "============= start server ================"
+                sh '''
+                docker run -d -p 80:80 --name my_container roman2447/website:1.1
+                '''
             }
         }
     }
