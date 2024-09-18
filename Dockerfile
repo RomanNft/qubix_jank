@@ -2,7 +2,7 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-# Встановлення Docker
+# Встановлення Docker CLI
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
@@ -17,9 +17,6 @@ RUN add-apt-repository \
    $(lsb_release -cs) \
    stable"
 
-RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io
-
-# Додавання Jenkins до групи Docker
-RUN usermod -aG docker jenkins
+RUN apt-get update && apt-get install -y docker-ce-cli
 
 USER jenkins
