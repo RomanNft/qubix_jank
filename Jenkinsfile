@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'my_service_credentials' // Ensure this label exists in your Jenkins environment
+        label 'my_service_credentials' // Переконайтеся, що ця мітка існує
     }
 
     options {
@@ -9,7 +9,7 @@ pipeline {
     }
 
     environment {
-        // Define environment variables for DockerHub credentials
+        // Визначте змінні середовища для облікових даних DockerHub
         DOCKERHUB_CREDENTIALS = credentials('DockerHub-Credentials')
     }
 
@@ -19,7 +19,7 @@ pipeline {
                 echo 'Checking out code ...'
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']], // Use wildcard for branch name
+                    branches: [[name: '*/main']], // Використовуйте підстановочний знак для імені гілки
                     userRemoteConfigs: [[url: 'https://github.com/RomanNft/qwqaz.git']]
                 ])
             }
@@ -73,7 +73,7 @@ pipeline {
     post {
         always {
             echo "Pipeline completed. Cleaning up..."
-            // Optionally, clean up any resources here
+            // Додатково, приберіть ресурси тут
         }
         success {
             echo "Pipeline succeeded!"
