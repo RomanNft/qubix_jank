@@ -20,9 +20,11 @@ export PATH="$PATH:/root/.dotnet/tools"
 
 # Виведення шляху для перевірки
 echo $PATH
+
 # Права на використання
 cd facebook-server/
 chmod +x wait-for-postgres.sh
+
 # Запуск Docker Compose для всіх сервісів
 cd ..
-docker-compose up --build
+docker-compose up --build -d
