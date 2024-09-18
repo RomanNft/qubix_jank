@@ -60,12 +60,8 @@ services:
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
-    networks:
-      - jenkins_network
 
 volumes:
   postgres_data:
   jenkins_home:
 
-networks:
-  jenkins_network:
