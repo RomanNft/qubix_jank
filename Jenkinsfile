@@ -1,4 +1,4 @@
-pipeline {
+ pipeline {
     agent any
     stages {
         stage("docker login") {
@@ -19,7 +19,7 @@ pipeline {
             steps {
                 echo " ============== docker facebook-client =================="
                 dir('facebook-client') {
-                    sh "docker build -t roman2447/facebook-client:latest ."
+                    sh "docker build -t roman2447/facebook-client:latest . --user root"
                     sh "docker push roman2447/facebook-client:latest"
                 }
                 echo " ============== docker facebook-client completed =================="
