@@ -1,20 +1,13 @@
 pipeline {
-    agent {
-        label 'my_service_credentials' // Переконайтеся, що ця мітка існує
-    }
-
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
-        timestamps()
-    }
+    agent any // Використовуємо будь-який доступний агент
 
     environment {
         // Визначте змінні середовища для облікових даних DockerHub
-        DOCKERHUB_CREDENTIALS = credentials('DockerHub-Credentials')
+        DOCKERHUB_CREDENTIALS = credentials('my_service_credentials')
     }
 
     stages {
-        stage("Checkout") {
+        stage('Checkout') {
             steps {
                 echo 'Checking out code ...'
                 checkout([
@@ -25,32 +18,30 @@ pipeline {
             }
         }
 
-        stage("Create docker image") {
+        stage('Build Combined Image') {
             steps {
-                echo 'Creating docker image ...'
-                sh "docker build --no-cache -t roman2447/website:1.1 ."
-            }
-        }
-
-        stage("Docker login") {
-            steps {
-                echo "============= Docker login ================"
-                withCredentials([usernamePassword(credentialsId: 'DockerHub-Credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh '''
-                    docker login -u $USERNAME -p $PASSWORD
-                    '''
+                script {
+                    // Build combined Docker image
+                    sh "docker build --no-cache -t roman2447/website:1.1 ."
                 }
             }
         }
 
-        stage("Docker push") {
+        stage('Push Combined Image') {
             steps {
-                echo "============= Pushing image ================"
-                sh "docker push roman2447/website:1.1"
+                script {
+                    // Push combined Docker image to Docker Hub
+                    withCredentials([usernamePassword(credentialsId: 'DockerHub-Credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh '''
+                        docker login -u $USERNAME -p $PASSWORD
+                        docker push roman2447/website:1.1
+                        '''
+                    }
+                }
             }
         }
 
-        stage("Docker stop and remove previous container") {
+        stage('Docker stop and remove previous container') {
             steps {
                 echo "============= Stopping and removing previous container ================"
                 sh '''
@@ -60,7 +51,7 @@ pipeline {
             }
         }
 
-        stage("Docker run") {
+        stage('Docker run') {
             steps {
                 echo "============= Starting server ================"
                 sh '''
