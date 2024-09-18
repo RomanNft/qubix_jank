@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'my_service_credentials' // Замініть на потрібний лейбл агента
+        label 'my_service_credentials' // Replace with the correct label
     }
 
     options {
@@ -23,8 +23,7 @@ pipeline {
         stage("Create docker image") {
             steps {
                 echo 'Creating docker image ...'
-                // Використовуйте правильний шлях до Docker
-                withEnv(["PATH+DOCKER=/usr/bin"]) { 
+                withEnv(["PATH+DOCKER=/usr/bin"]) {
                     sh "docker build --no-cache -t roman2447/website:1.1 ."
                 }
             }
@@ -44,7 +43,7 @@ pipeline {
         stage("Docker push") {
             steps {
                 echo "============= Pushing image ================"
-                withEnv(["PATH+DOCKER=/usr/bin"]) { 
+                withEnv(["PATH+DOCKER=/usr/bin"]) {
                     sh "docker push roman2447/website:1.1"
                 }
             }
@@ -53,7 +52,7 @@ pipeline {
         stage("Docker stop and remove previous container") {
             steps {
                 echo "============= Stopping and removing previous container ================"
-                withEnv(["PATH+DOCKER=/usr/bin"]) { 
+                withEnv(["PATH+DOCKER=/usr/bin"]) {
                     sh '''
                     docker stop my_container || true
                     docker rm my_container || true
@@ -65,7 +64,7 @@ pipeline {
         stage("Docker run") {
             steps {
                 echo "============= Starting server ================"
-                withEnv(["PATH+DOCKER=/usr/bin"]) { 
+                withEnv(["PATH+DOCKER=/usr/bin"]) {
                     sh '''
                     docker run -d -p 80:80 --name my_container roman2447/website:1.1
                     '''
