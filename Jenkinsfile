@@ -25,7 +25,7 @@ pipeline {
         stage("Create docker image") {
             steps {
                 echo 'Creating docker image ...'
-                sh "docker build --no-cache -t roman2447/website:1.1 ."
+                sh "/usr/local/bin/docker build --no-cache -t roman2447/website:1.1 ."
             }
         }
 
