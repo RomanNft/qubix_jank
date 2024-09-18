@@ -19,7 +19,7 @@
             steps {
                 echo " ============== docker facebook-client =================="
                 dir('facebook-client') {
-                    sh "docker build -t roman2447/facebook-client:latest . --user root"
+                    sh "docker build -t roman2447/facebook-client:latest ."
                     sh "docker push roman2447/facebook-client:latest"
                 }
                 echo " ============== docker facebook-client completed =================="
