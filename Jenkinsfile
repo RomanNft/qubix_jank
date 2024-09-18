@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'my_service_' // Replace with the correct label
+        label 'my-service-node' // Replace with the correct label
     }
 
     options {
@@ -23,9 +23,7 @@ pipeline {
         stage("Create docker image") {
             steps {
                 echo 'Creating docker image ...'
-                withEnv(["PATH+DOCKER=/usr/bin"]) {
-                    sh "docker build --no-cache -t roman2447/website:1.1 ."
-                }
+                sh "docker build --no-cache -t roman2447/website:1.1 ."
             }
         }
 
@@ -43,32 +41,26 @@ pipeline {
         stage("Docker push") {
             steps {
                 echo "============= Pushing image ================"
-                withEnv(["PATH+DOCKER=/usr/bin"]) {
-                    sh "docker push roman2447/website:1.1"
-                }
+                sh "docker push roman2447/website:1.1"
             }
         }
 
         stage("Docker stop and remove previous container") {
             steps {
                 echo "============= Stopping and removing previous container ================"
-                withEnv(["PATH+DOCKER=/usr/bin"]) {
-                    sh '''
-                    docker stop my_container || true
-                    docker rm my_container || true
-                    '''
-                }
+                sh '''
+                docker stop my_container || true
+                docker rm my_container || true
+                '''
             }
         }
 
         stage("Docker run") {
             steps {
                 echo "============= Starting server ================"
-                withEnv(["PATH+DOCKER=/usr/bin"]) {
-                    sh '''
-                    docker run -d -p 80:80 --name my_container roman2447/website:1.1
-                    '''
-                }
+                sh '''
+                docker run -d -p 80:80 --name my_container roman2447/website:1.1
+                '''
             }
         }
     }
