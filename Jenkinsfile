@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_COMPOSE = 'docker-compose'
+        DOCKER_COMPOSE = '/usr/local/bin/docker-compose'
         DOCKER_IMAGE_CLIENT = 'roman2447/facebook-client:latest'
         DOCKER_IMAGE_SERVER = 'roman2447/facebook-server:latest'
     }
