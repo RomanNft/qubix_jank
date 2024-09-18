@@ -20,8 +20,6 @@ export PATH="$PATH:/root/.dotnet/tools"
 
 # Виведення шляху для перевірки
 echo $PATH
-
-# Права на використання
 cd facebook-server/
 chmod +x wait-for-postgres.sh
 
