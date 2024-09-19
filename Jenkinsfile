@@ -39,6 +39,7 @@ pipeline {
             }
             steps {
                 script {
+                    echo "DOCKER_LOGIN_SUCCESS: ${env.DOCKER_LOGIN_SUCCESS}"
                     sh 'docker build -t roman2447/facebook-client:latest ./facebook-client'
                     sh 'docker push roman2447/facebook-client:latest'
                 }
@@ -51,6 +52,7 @@ pipeline {
             }
             steps {
                 script {
+                    echo "DOCKER_LOGIN_SUCCESS: ${env.DOCKER_LOGIN_SUCCESS}"
                     sh 'docker build -t roman2447/facebook-server:latest ./facebook-server'
                     sh 'docker push roman2447/facebook-server:latest'
                 }
