@@ -1,61 +1,57 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_HUB_CREDENTIALS = credentials('my_service_')
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                // Clone the repository
                 git url: 'https://github.com/RomanNft/qwqaz.git'
             }
         }
 
-        stage('Build') {
-            steps {
-                // Build the Docker images for server and client
-                script {
-                    sh 'docker build -t roman2447/facebook-server:latest ./facebook-server'
-                    sh 'docker build -t roman2447/facebook-client:latest ./facebook-client'
-                }
-            }
-        }
-
-        stage('Test') {
-            steps {
-                // Add any testing steps here
-                echo 'Running tests...'
-                // e.g., sh 'docker run --rm your-test-image'
-            }
-        }
-
-        stage('Push to Docker Hub') {
+        stage('Docker Login') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKER_HUB_CREDENTIALS') {
-                        sh 'docker push roman2447/facebook-server:latest'
-                        sh 'docker push roman2447/facebook-client:latest'
+                    withCredentials([usernamePassword(credentialsId: 'my_service_', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
                     }
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Build and Push facebook-client') {
+            when {
+                expression {
+                    return env.DOCKER_LOGIN_SUCCESS == 'true'
+                }
+            }
             steps {
-                echo 'Deploying application...'
-                // Use docker-compose for deployment
-                sh 'docker-compose down'
-                sh 'docker-compose up -d'
+                script {
+                    sh 'docker build -t roman2447/facebook-client:latest ./facebook-client'
+                    sh 'docker push roman2447/facebook-client:latest'
+                }
             }
         }
-    }
 
+        stage('Build and Push facebook-server') {
+            when {
+                expression {
+                    return env.DOCKER_LOGIN_SUCCESS == 'true'
+                }
+            }
+            steps {
+                script {
+                    sh 'docker build -t roman2447/facebook-server:latest ./facebook-server'
+                    sh 'docker push roman2447/facebook-server:latest'
+                }
+            }
+        }
+
+        // Add other stages as needed
+    }
+    
     post {
-        always {
-            echo 'Sending notifications...'
-            // Add code here for post-build actions, like sending notifications
+        failure {
+            echo 'The build failed. Please check the logs for details.'
         }
     }
 }
