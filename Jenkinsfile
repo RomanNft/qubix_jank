@@ -2,65 +2,59 @@ pipeline {
     agent any
 
     environment {
-        PATH = "${env.PATH}:/usr/local/bin" // Ensure Docker is in PATH
+        DOCKER_IMAGE_CLIENT = 'roman2447/facebook-client:latest'
+        DOCKER_IMAGE_SERVER = 'roman2447/facebook-server:latest'
+        DOCKER_IMAGE_MIGRATION = 'qwqaz_migration:latest'
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/RomanNft/qwqaz.git'
-            }
-        }
-
-        stage('Docker Login') {
+        stage('Build Client') {
             steps {
                 script {
-                    sh 'docker --version' // Check if Docker is available
-
-                    withCredentials([usernamePassword(credentialsId: 'my_service_', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh '''
-                            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                            if [ $? -eq 0 ]; then
-                                echo "Docker login successful"
-                                export DOCKER_LOGIN_SUCCESS=true
-                            else
-                                echo "Docker login failed"
-                                export DOCKER_LOGIN_SUCCESS=false
-                            fi
-                        '''
-                    }
+                    sh 'docker build -t $DOCKER_IMAGE_CLIENT ./facebook-client'
                 }
             }
         }
 
-        stage('Build and Push facebook-client') {
-            when {
-                expression { return env.DOCKER_LOGIN_SUCCESS == 'true' }
-            }
+        stage('Build Server') {
             steps {
                 script {
-                    sh 'docker build -t roman2447/facebook-client:latest ./facebook-client'
-                    sh 'docker push roman2447/facebook-client:latest'
+                    sh 'docker build -t $DOCKER_IMAGE_SERVER ./facebook-server'
                 }
             }
         }
 
-        stage('Build and Push facebook-server') {
-            when {
-                expression { return env.DOCKER_LOGIN_SUCCESS == 'true' }
-            }
+        stage('Build Migration') {
             steps {
                 script {
-                    sh 'docker build -t roman2447/facebook-server:latest ./facebook-server'
-                    sh 'docker push roman2447/facebook-server:latest'
+                    sh 'docker build -t $DOCKER_IMAGE_MIGRATION -f Dockerfile_MIGRATION ./facebook-server'
+                }
+            }
+        }
+
+        stage('Run Docker Compose') {
+            steps {
+                script {
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+
+        stage('Jenkins Setup') {
+            steps {
+                script {
+                    sh 'docker run -d -p 8080:8080 -p 50000:50000 --name jenkins jenkins/jenkins:lts'
                 }
             }
         }
     }
 
     post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
         failure {
-            echo 'The build failed. Please check the logs for details.'
+            echo 'Pipeline failed.'
         }
     }
 }
