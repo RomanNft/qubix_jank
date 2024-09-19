@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/RomanNft/qwqaz.git'
+                git branch: 'main', url: 'https://github.com/RomanNft/qwqaz.git'
             }
         }
 
