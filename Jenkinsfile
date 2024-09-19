@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         PATH = "${env.PATH}:/usr/local/bin" // Ensure Docker is in PATH
+        DOCKER_LOGIN_SUCCESS = false
     }
 
     stages {
@@ -35,7 +36,7 @@ pipeline {
 
         stage('Build and Push facebook-client') {
             when {
-                expression { return env.DOCKER_LOGIN_SUCCESS }
+                expression { return env.DOCKER_LOGIN_SUCCESS.toBoolean() }
             }
             steps {
                 script {
@@ -48,7 +49,7 @@ pipeline {
 
         stage('Build and Push facebook-server') {
             when {
-                expression { return env.DOCKER_LOGIN_SUCCESS }
+                expression { return env.DOCKER_LOGIN_SUCCESS.toBoolean() }
             }
             steps {
                 script {
