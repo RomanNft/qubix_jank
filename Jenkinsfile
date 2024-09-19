@@ -9,30 +9,31 @@ pipeline {
         }
 
         stage('Docker Login') {
-    steps {
-        script {
-            sh 'docker --version' // Check if Docker is available
-            withCredentials([usernamePassword(credentialsId: 'my_service_', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                sh '''
-                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                    if [ $? -eq 0 ]; then
-                        echo "Docker login successful"
-                        export DOCKER_LOGIN_SUCCESS=true
-                    else
-                        echo "Docker login failed"
-                        export DOCKER_LOGIN_SUCCESS=false
-                    fi
-                '''
+            steps {
+                script {
+                    // Ensure Docker is in the PATH
+                    env.PATH = "${env.PATH}:/usr/local/bin"  // Adjust the path if necessary
+
+                    sh 'docker --version' // Check if Docker is available
+                    withCredentials([usernamePassword(credentialsId: 'my_service_', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh '''
+                            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                            if [ $? -eq 0 ]; then
+                                echo "Docker login successful"
+                                export DOCKER_LOGIN_SUCCESS=true
+                            else
+                                echo "Docker login failed"
+                                export DOCKER_LOGIN_SUCCESS=false
+                            fi
+                        '''
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Build and Push facebook-client') {
             when {
-                expression {
-                    return env.DOCKER_LOGIN_SUCCESS == 'true'
-                }
+                expression { return env.DOCKER_LOGIN_SUCCESS == 'true' }
             }
             steps {
                 script {
@@ -44,9 +45,7 @@ pipeline {
 
         stage('Build and Push facebook-server') {
             when {
-                expression {
-                    return env.DOCKER_LOGIN_SUCCESS == 'true'
-                }
+                expression { return env.DOCKER_LOGIN_SUCCESS == 'true' }
             }
             steps {
                 script {
