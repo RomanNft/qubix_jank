@@ -30,6 +30,7 @@ pipeline {
                             fi
                         '''
                     }
+                    echo "DOCKER_LOGIN_SUCCESS after Docker Login: ${env.DOCKER_LOGIN_SUCCESS}"
                 }
             }
         }
@@ -40,7 +41,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "DOCKER_LOGIN_SUCCESS: ${env.DOCKER_LOGIN_SUCCESS}"
+                    echo "DOCKER_LOGIN_SUCCESS before Build and Push facebook-client: ${env.DOCKER_LOGIN_SUCCESS}"
                     sh 'docker build -t roman2447/facebook-client:latest ./facebook-client'
                     sh 'docker push roman2447/facebook-client:latest'
                 }
@@ -53,7 +54,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "DOCKER_LOGIN_SUCCESS: ${env.DOCKER_LOGIN_SUCCESS}"
+                    echo "DOCKER_LOGIN_SUCCESS before Build and Push facebook-server: ${env.DOCKER_LOGIN_SUCCESS}"
                     sh 'docker build -t roman2447/facebook-server:latest ./facebook-server'
                     sh 'docker push roman2447/facebook-server:latest'
                 }
