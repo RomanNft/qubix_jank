@@ -35,7 +35,7 @@ pipeline {
 
         stage('Build and Push facebook-client') {
             when {
-                expression { return env.DOCKER_LOGIN_SUCCESS == 'true' }
+                expression { return env.DOCKER_LOGIN_SUCCESS }
             }
             steps {
                 script {
@@ -47,7 +47,7 @@ pipeline {
 
         stage('Build and Push facebook-server') {
             when {
-                expression { return env.DOCKER_LOGIN_SUCCESS == 'true' }
+                expression { return env.DOCKER_LOGIN_SUCCESS }
             }
             steps {
                 script {
