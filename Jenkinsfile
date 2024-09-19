@@ -12,7 +12,16 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'my_service_', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                        sh '''
+                            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                            if [ $? -eq 0 ]; then
+                                echo "Docker login successful"
+                                export DOCKER_LOGIN_SUCCESS=true
+                            else
+                                echo "Docker login failed"
+                                export DOCKER_LOGIN_SUCCESS=false
+                            fi
+                        '''
                     }
                 }
             }
@@ -45,10 +54,8 @@ pipeline {
                 }
             }
         }
-
-        // Add other stages as needed
     }
-    
+
     post {
         failure {
             echo 'The build failed. Please check the logs for details.'
