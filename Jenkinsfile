@@ -23,10 +23,10 @@ pipeline {
                             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
                             if [ $? -eq 0 ]; then
                                 echo "Docker login successful"
-                                export DOCKER_LOGIN_SUCCESS=true
+                                env.DOCKER_LOGIN_SUCCESS = true
                             else
                                 echo "Docker login failed"
-                                export DOCKER_LOGIN_SUCCESS=false
+                                env.DOCKER_LOGIN_SUCCESS = false
                             fi
                         '''
                     }
