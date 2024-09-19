@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        PATH = "${env.PATH}:/usr/local/bin" // Ensure Docker is in PATH
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -11,10 +15,8 @@ pipeline {
         stage('Docker Login') {
             steps {
                 script {
-                    // Ensure Docker is in the PATH
-                    env.PATH = "${env.PATH}:/usr/local/bin"  // Adjust the path if necessary
-
                     sh 'docker --version' // Check if Docker is available
+
                     withCredentials([usernamePassword(credentialsId: 'my_service_', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh '''
                             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
