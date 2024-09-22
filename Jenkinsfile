@@ -35,15 +35,7 @@ pipeline {
             }
         }
 
-        stage('Run Services with Docker Compose') {
-            steps {
-                // Запуск сервісів за допомогою docker-compose
-                dir('qwqaz') {
-                    sh 'docker-compose up -d --build'
-                }
-            }
-        }
-    }
+
 
     post {
         success {
