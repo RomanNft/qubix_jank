@@ -21,7 +21,7 @@ pipeline {
             steps {
                 script {
                     // Build and start containers using docker-compose
-                    sh 'docker-compose -f facebook-server/docker-compose.yaml up --build -d
+                    sh "docker-compose -f facebook-server/docker-compose.yaml up --build -d"
                 }
             }
         }
