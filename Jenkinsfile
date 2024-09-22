@@ -25,7 +25,7 @@ pipeline {
                     // Print the directory structure
                     sh "ls -l"
                     // Build and start containers using docker-compose
-                    sh "docker-compose -f ${WORKSPACE}/docker-compose.yaml up --build -d"
+                    sh "docker-compose -f ./docker-compose.yaml up --build -d"
                 }
             }
         }
