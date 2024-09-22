@@ -2,69 +2,58 @@ pipeline {
     agent any
 
     environment {
-        PATH = "${env.PATH}:/usr/local/bin" // Ensure Docker is in PATH
-        DOCKER_LOGIN_SUCCESS = false
+        DOCKER_CREDENTIALS_ID = 'my_service_'  // Заміни на свій ID облікових даних Docker Hub у Jenkins
+        DOCKER_USERNAME = 'roman2447'  // Заміни на свій Docker Hub логін
+        DOCKER_IMAGE_CLIENT = 'roman2447/facebook-client'
+        DOCKER_IMAGE_SERVER = 'roman2447/facebook-server'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/RomanNft/qwqaz.git'
+                // Клонування репозиторію
+                git 'https://github.com/RomanNft/qwqaz.git'
             }
         }
-
-        stage('Docker Login') {
+        
+        stage('Build and Push Client Image') {
             steps {
                 script {
-                    sh 'docker --version' // Check if Docker is available
-
-                    withCredentials([usernamePassword(credentialsId: 'my_service_', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh '''
-                            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                            if [ $? -eq 0 ]; then
-                                echo "Docker login successful"
-                                export DOCKER_LOGIN_SUCCESS=true
-                            else
-                                echo "Docker login failed"
-                                export DOCKER_LOGIN_SUCCESS=false
-                            fi
-                        '''
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKER_CREDENTIALS_ID) {
+                        sh 'docker-compose build facebook-client'
+                        sh 'docker tag ${DOCKER_IMAGE_CLIENT}:latest ${DOCKER_IMAGE_CLIENT}:${BUILD_NUMBER}'
+                        sh 'docker push ${DOCKER_IMAGE_CLIENT}:latest'
+                        sh 'docker push ${DOCKER_IMAGE_CLIENT}:${BUILD_NUMBER}'
                     }
-                    echo "DOCKER_LOGIN_SUCCESS after Docker Login: ${env.DOCKER_LOGIN_SUCCESS}"
+                }
+            }
+        }
+        
+        stage('Build and Push Server Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKER_CREDENTIALS_ID) {
+                        sh 'docker-compose build facebook-server'
+                        sh 'docker tag ${DOCKER_IMAGE_SERVER}:latest ${DOCKER_IMAGE_SERVER}:${BUILD_NUMBER}'
+                        sh 'docker push ${DOCKER_IMAGE_SERVER}:latest'
+                        sh 'docker push ${DOCKER_IMAGE_SERVER}:${BUILD_NUMBER}'
+                    }
                 }
             }
         }
 
-        stage('Build and Push facebook-client') {
-            when {
-                expression { return env.DOCKER_LOGIN_SUCCESS.toBoolean() }
-            }
+        stage('Run Services') {
             steps {
-                script {
-                    echo "DOCKER_LOGIN_SUCCESS before Build and Push facebook-client: ${env.DOCKER_LOGIN_SUCCESS}"
-                    sh 'docker build -t roman2447/facebook-client:latest ./facebook-client'
-                    sh 'docker push roman2447/facebook-client:latest'
-                }
-            }
-        }
-
-        stage('Build and Push facebook-server') {
-            when {
-                expression { return env.DOCKER_LOGIN_SUCCESS.toBoolean() }
-            }
-            steps {
-                script {
-                    echo "DOCKER_LOGIN_SUCCESS before Build and Push facebook-server: ${env.DOCKER_LOGIN_SUCCESS}"
-                    sh 'docker build -t roman2447/facebook-server:latest ./facebook-server'
-                    sh 'docker push roman2447/facebook-server:latest'
-                }
+                // Запуск Docker Compose сервісів
+                sh 'docker-compose up -d'
             }
         }
     }
 
     post {
-        failure {
-            echo 'The build failed. Please check the logs for details.'
+        always {
+            // Архівування логів або важливих артефактів
+            archiveArtifacts artifacts: '**/target/*.log', allowEmptyArchive: true
         }
     }
 }
