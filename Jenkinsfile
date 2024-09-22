@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Docker Hub credentials ID, should be preconfigured in Jenkins (Manage Jenkins -> Credentials)
         DOCKERHUB_CREDENTIALS = 'my_service_'
         DOCKERHUB_USERNAME = 'roman2447'
         DOCKERHUB_IMAGE_CLIENT = 'roman2447/facebook-client'
@@ -14,7 +13,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Check out the code from GitHub
                 git url: 'https://github.com/RomanNft/qwqaz', branch: 'main'
             }
         }
@@ -22,11 +20,8 @@ pipeline {
         stage('Setup PostgreSQL Container') {
             steps {
                 script {
-                    // Start PostgreSQL container
-                    def dbContainer = docker.run("-e POSTGRES_DB=${POSTGRES_DB} -p 5432:5432 --name postgres_db ${POSTGRES_IMAGE}", '--rm')
-                    
-                    // Wait for a few seconds to let PostgreSQL start
-                    sleep time: 10, unit: 'SECONDS'
+                    def dbContainer = docker.image(POSTGRES_IMAGE).run("-e POSTGRES_DB=${POSTGRES_DB} -p 5432:5432 --name postgres_db")
+                    sleep time: 10, unit: 'SECONDS' // Ensure PostgreSQL has time to start
                 }
             }
         }
@@ -34,8 +29,7 @@ pipeline {
         stage('Run Migrations') {
             steps {
                 script {
-                    // Run database migrations here
-                    // Replace the command below with your migration command
+                    // Modify this command based on your migration script path
                     sh 'docker exec postgres_db /path/to/migration/script.sh'
                 }
             }
@@ -44,13 +38,10 @@ pipeline {
         stage('Build and Push Docker Images') {
             steps {
                 script {
-                    // Log in to Docker Hub
                     docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        // Build the client image
                         def clientImage = docker.build("${DOCKERHUB_IMAGE_CLIENT}:latest", './facebook-client')
                         clientImage.push('latest')
 
-                        // Build the server image
                         def serverImage = docker.build("${DOCKERHUB_IMAGE_SERVER}:latest", './facebook-server')
                         serverImage.push('latest')
                     }
@@ -61,7 +52,6 @@ pipeline {
 
     post {
         cleanup {
-            // Cleanup by stopping and removing the PostgreSQL container
             sh 'docker stop postgres_db || true'
             sh 'docker rm postgres_db || true'
         }
