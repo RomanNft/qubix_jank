@@ -20,10 +20,12 @@ pipeline {
         stage('Build and Start Containers') {
             steps {
                 script {
-                    // Print the working directory
-                    sh "pwd"
-                    // Build and start containers using docker-compose
-                    sh "docker-compose -f ./facebook-server/docker-compose.yaml up --build -d"
+            // Print the working directory
+            sh "pwd"
+            // Print the directory structure
+            sh "ls -l"
+            // Build and start containers using docker-compose
+            sh "docker-compose -f ./facebook-server/docker-compose.yaml up --build -d"
                 }
             }
         }
