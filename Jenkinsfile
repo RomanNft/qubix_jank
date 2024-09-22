@@ -37,12 +37,9 @@ pipeline {
 
         stage('Run Services with Docker Compose') {
             steps {
-                // Navigate to the directory containing docker-compose.yaml
-                dir('path/to/docker-compose-directory') {
-                    // Запуск сервісів за допомогою docker-compose
-                    sh 'docker-compose down' // Зупиняємо всі активні контейнери, якщо є
-                    sh 'docker-compose up -d --build' // Піднімаємо нові контейнери
-                }
+                // Запуск сервісів за допомогою docker-compose
+                sh 'docker-compose down' // Зупиняємо всі активні контейнери, якщо є
+                sh 'docker-compose up -d --build' // Піднімаємо нові контейнери
             }
         }
     }
