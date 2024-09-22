@@ -17,20 +17,11 @@ pipeline {
             }
         }
 
-        stage('Build and Push Docker Images') {
+        stage('Build and Start Containers') {
             steps {
                 script {
-                    // Логін в Docker Hub
-                    docker.withRegistry('https://index.docker.io/v1/', "$DOCKERHUB_CREDENTIALS") {
-
-                        // Побудова клієнтського образу
-                        def clientImage = docker.build("$DOCKERHUB_IMAGE_CLIENT:latest", './facebook-client')
-                        clientImage.push('latest')
-
-                        // Побудова серверного образу
-                        def serverImage = docker.build("$DOCKERHUB_IMAGE_SERVER:latest", './facebook-server')
-                        serverImage.push('latest')
-                    }
+                    // Build and start containers using docker-compose
+                    sh 'docker-compose up --build -d'
                 }
             }
         }
