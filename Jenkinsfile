@@ -39,7 +39,6 @@ pipeline {
             steps {
                 // Запуск сервісів за допомогою docker-compose
                 dir('qwqaz') {
-                    sh 'docker-compose down'
                     sh 'docker-compose up -d --build'
                 }
             }
