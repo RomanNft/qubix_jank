@@ -29,10 +29,10 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my_service_', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    docker-compose push
-                    """
+                    script {
+                        sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                        sh 'docker-compose push'
+                    }
                 }
             }
         }
