@@ -28,7 +28,7 @@ services:
       sh -c "dotnet ef database update --configuration Release && dotnet Facebook_Api.dll"
 
   db:
-    image: postgres:latest
+    image: roman2447/postgres:latest  # Додано тег для бази даних
     environment:
       POSTGRES_DB: facebook
       POSTGRES_USER: postgres
@@ -42,6 +42,7 @@ services:
     build:
       context: ./facebook-server
       dockerfile: Dockerfile_MIGRATION
+    image: roman2447/facebook-migration:latest  # Додано тег для міграції
     volumes:
       - ./facebook-server:/app
     working_dir: /app/Facebook_Api
@@ -54,4 +55,3 @@ services:
 
 volumes:
   postgres_data:
-
