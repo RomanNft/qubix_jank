@@ -12,9 +12,19 @@ pipeline {
         stage('Build Docker Containers') {
             steps {
                 withCredentials([string(credentialsId: 'sudo_password', variable: 'SUDO_PASS')]) {
-                    sh """
-                    echo $SUDO_PASS | sudo -S bash setup.sh
-                    """
+                    script {
+                        // Create a temporary file to store the sudo password
+                        def tempFile = "${env.WORKSPACE}/sudo_password.txt"
+                        writeFile file: tempFile, text: SUDO_PASS
+                        
+                        // Use the temporary file to pass the sudo password
+                        sh """
+                        sudo -S bash setup.sh < ${tempFile}
+                        """
+                        
+                        // Clean up the temporary file
+                        sh "rm -f ${tempFile}"
+                    }
                 }
             }
         }
