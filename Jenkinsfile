@@ -5,7 +5,7 @@ pipeline {
         stage('Clone repository') {
             steps {
                 // Clone the repository
-                git 'https://github.com/RomanNft/qwqaz'
+                git branch: 'main', url: 'https://github.com/RomanNft/qwqaz'
             }
         }
 
