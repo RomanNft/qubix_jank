@@ -19,16 +19,16 @@ services:
     depends_on:
       - db
     volumes:
-      - avatars_data:/app/images/avatars
-      - coverphotos_data:/app/images/coverPhotos
-      - stories_data:/app/images/stories
+      - ./facebook-server/Facebook_Api/images/avatars:/app/images/avatars
+      - ./facebook-server/Facebook_Api/images/coverPhotos:/app/images/coverPhotos
+      - ./facebook-server/Facebook_Api/images/stories:/app/images/stories
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     command: >
       sh -c "dotnet ef database update --configuration Release && dotnet Facebook_Api.dll"
 
   db:
-    image: postgres:latest
+    image: roman2447/postgres:latest  # Додано тег для бази даних
     environment:
       POSTGRES_DB: facebook
       POSTGRES_USER: postgres
@@ -42,7 +42,7 @@ services:
     build:
       context: ./facebook-server
       dockerfile: Dockerfile_MIGRATION
-    image: facebook-migration:latest
+    image: roman2447/facebook-migration:latest  # Додано тег для міграції
     volumes:
       - ./facebook-server:/app
     working_dir: /app/Facebook_Api
@@ -55,6 +55,3 @@ services:
 
 volumes:
   postgres_data:
-  avatars_data:
-  coverphotos_data:
-  stories_data:
