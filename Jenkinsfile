@@ -12,7 +12,7 @@ pipeline {
         stage('Build Docker Containers') {
             steps {
                 // Build the Docker containers using docker-compose
-                sh 'docker-compose build'
+                sh 'bash ./setup.sh'
             }
         }
 
