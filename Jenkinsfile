@@ -11,8 +11,11 @@ pipeline {
 
         stage('Build Docker Containers') {
             steps {
-                // Build the Docker containers using docker-compose
-                sh 'bash setup.sh'
+                withCredentials([string(credentialsId: 'sudo_password', variable: 'SUDO_PASS')]) {
+                    sh """
+                    echo $SUDO_PASS | sudo -S bash setup.sh
+                    """
+                }
             }
         }
 
