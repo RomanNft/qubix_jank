@@ -28,7 +28,7 @@ services:
       sh -c "dotnet ef database update --configuration Release && dotnet Facebook_Api.dll"
 
   db:
-    image: roman2447/postgres:latest  # Додано тег для бази даних
+    image: postgres:latest  # Додано тег для бази даних
     environment:
       POSTGRES_DB: facebook
       POSTGRES_USER: postgres
