@@ -10,6 +10,7 @@ pipeline {
 
         stage('Build Docker Containers') {
             steps {
+                // Build all images including the db
                 sh 'docker-compose build'
             }
         }
@@ -31,7 +32,10 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'my_service_', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
                         sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                        sh 'docker-compose push'
+                        // Push each image explicitly
+                        sh 'docker push roman2447/facebook-client:latest'
+                        sh 'docker push roman2447/facebook-server:latest'
+                        sh 'docker push roman2447/db-facebook:latest' // Ensure db image is pushed
                     }
                 }
             }
