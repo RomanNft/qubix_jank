@@ -28,6 +28,8 @@ services:
       sh -c "dotnet ef database update --configuration Release && dotnet Facebook_Api.dll"
 
   db:
+    build:
+      context: . # Ensure this points to your PostgreSQL Dockerfile
     image: roman2447/db-facebook:latest
     environment:
       POSTGRES_DB: facebook
