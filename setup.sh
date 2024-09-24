@@ -46,6 +46,6 @@ cd facebook-server/
 chmod +x wait-for-postgres.sh
 cd ..
 #Ставим дженкінс
-bash installJenkins.sh
+#bash installJenkins.sh
 # Запуск Docker Compose з побудовою сервісів
 docker-compose up --build
