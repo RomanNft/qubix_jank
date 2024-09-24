@@ -28,7 +28,7 @@ services:
       sh -c "dotnet ef database update --configuration Release && dotnet Facebook_Api.dll"
 
   db:
-    image: postgres:latest
+    image: roman2447/db-facebook:latest
     environment:
       POSTGRES_DB: facebook
       POSTGRES_USER: postgres
@@ -39,6 +39,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   migration:
+    image: roman2447/migration:latest
     build:
       context: ./facebook-server
       dockerfile: Dockerfile_MIGRATION
