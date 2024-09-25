@@ -15,4 +15,5 @@ WORKDIR /app/Facebook_Api
 ENV PATH="$PATH:/root/.dotnet/tools"
 
 # Виконання міграцій
-CMD ["sh", "-c", "dotnet tool install --global dotnet-ef && /app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release'"]
+RUN dotnet tool install --global dotnet-ef # Інсталяція dotnet-ef під час створення образу
+CMD ["sh", "-c", "/app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release'"]
