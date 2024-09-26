@@ -14,6 +14,8 @@ WORKDIR /app/Facebook_Api
 # Додавання шляху до інструментів .NET Core до змінної середовища PATH
 ENV PATH="$PATH:/root/.dotnet/tools"
 
-# Виконання міграцій
-RUN dotnet tool install --global dotnet-ef # Інсталяція dotnet-ef під час створення образу
+# Встановлення dotnet-ef глобально
+RUN dotnet tool install --global dotnet-ef
+
+# Запуск міграцій
 CMD ["sh", "-c", "/app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release'"]
