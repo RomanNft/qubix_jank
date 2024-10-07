@@ -12,20 +12,20 @@ builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration);
 
-//NLog
-//builder.Logging.ClearProviders();
-//builder.Logging.SetMinimumLevel(LogLevel.Trace);
-//builder.Host.UseNLog();
+// NLog
+// builder.Logging.ClearProviders();
+// builder.Logging.SetMinimumLevel(LogLevel.Trace);
+// builder.Host.UseNLog();
 
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("StaticFilesCorsPolicy", builder =>
-//    {
-//        builder.AllowAnyOrigin()
-//               .AllowAnyHeader()
-//               .AllowAnyMethod();
-//    });
-//});
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("StaticFilesCorsPolicy", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -43,11 +43,7 @@ else
     app.UseHsts();
 }
 
-app.UseCors(options => options.SetIsOriginAllowed(origin => true)
-    .AllowCredentials()
-    .AllowAnyMethod()
-    .AllowAnyHeader()
-);
+app.UseCors("StaticFilesCorsPolicy");
 
 if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "images")))
 {
@@ -72,4 +68,4 @@ UserAndRolesInitializer.SeedData(app);
 ActionsSeeder.SeedData(app);
 FeelingsSeeder.SeedData(app);
 
-app.Run();
+app.Run(); // Вказівка URL для бекенду

@@ -36,26 +36,25 @@ public class AuthenticationController(ISender mediatr,
     : ApiController
 {
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterAsync([FromForm] RegisterRequest request)
+public async Task<IActionResult> RegisterAsync([FromForm] RegisterRequest request)
+{
+    var baseUrl = configuration.GetRequiredSection("HostSettings:ClientURL").Value;
+
+    byte[] image = null;
+    if (request.Avatar != null && request.Avatar.Length > 0)
     {
-        var baseUrl = configuration.GetRequiredSection("HostSettings:ClientURL").Value;
-
-        byte[] image = [];
-        if (request.Avatar != null && request.Avatar.Length > 0)
-        {
-            using MemoryStream memoryStream = new();
-            await request.Avatar.CopyToAsync(memoryStream);
-            image = memoryStream.ToArray();
-        }
-
-        var authResult = await mediatr.Send(mapper
-            .Map<RegisterCommand>((request, baseUrl, image)));
-
-        return authResult.Match(
-            authResult => Ok(mapper.Map<AuthenticationResponse>(authResult)),
-            errors => Problem(errors));
+        using MemoryStream memoryStream = new();
+        await request.Avatar.CopyToAsync(memoryStream);
+        image = memoryStream.ToArray();
     }
 
+    var authResult = await mediatr.Send(mapper
+        .Map<RegisterCommand>((request, baseUrl, image)));
+
+    return authResult.Match(
+        authResult => Ok(mapper.Map<AuthenticationResponse>(authResult)),
+        errors => Problem(errors));
+}
 
     [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmailAsync([FromQuery] ConfirmEmailRequest request)
@@ -63,7 +62,7 @@ public class AuthenticationController(ISender mediatr,
         var confirmEmailResult = await mediatr.Send(mapper.Map<ConfirmEmailCommand>(request));
 
         return confirmEmailResult.Match(
-            confirmResult => Redirect("https://qubix.itstep.click/email-confirmed"),
+            confirmResult => Redirect("http://192.168.0.13:5173"),
             errors => Problem(errors));
     }
 
@@ -109,7 +108,7 @@ public class AuthenticationController(ISender mediatr,
         var forgotPasswordResult = await mediatr.Send(query);
 
         return forgotPasswordResult.Match(
-            forgotPasswordRes => Redirect("https://qubix.itstep.click/set-new-password"),
+            forgotPasswordRes => Redirect("http://192.168.0.13:5173"),
             errors => Problem(errors));
     }
 

@@ -35,8 +35,8 @@ module "vpc" {
 resource "aws_instance" "EC2-Instance" {
   availability_zone      = "eu-central-1a"
   count                  = 1
-  ami                    = "ami-0e04bcbe83a83792e"
-  instance_type          = "t2.2xlarge"
+  ami                    = "ami-0084a47cc718c111a"
+  instance_type          = "t2.xlarge"
   key_name               = "tolik"
   vpc_security_group_ids = [aws_security_group.sayt.id]
 

@@ -22,7 +22,7 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Копіюємо конфігураційний файл Nginx
-#COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Відкриваємо порт 80
 EXPOSE 80
