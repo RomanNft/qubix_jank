@@ -122,7 +122,7 @@ resource "aws_security_group" "sayt" {
 
 # Додавання S3 бакету для стану Terraform
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "my-proet-terraform-state-bucket-unique"  # Унікальне ім'я
+  bucket = "my-proet-terraform-state-bucket"  # Унікальне ім'я
 
   tags = {
     Name        = "My Terraform Bucket"
