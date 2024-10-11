@@ -230,7 +230,7 @@ resource "aws_route53_record" "qubix_social" {
 resource "aws_elb" "qubix_elb" {
   name               = "qubix-elb"
   subnets            = module.vpc.public_subnets
-  security_groups    = [aws_security_group.elb_sg.id]  # Переконайтеся, що це правильний ID
+  security_groups    = [aws_security_group.elb_sg.id]
 
   listener {
     instance_port     = 5173
