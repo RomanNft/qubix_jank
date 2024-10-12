@@ -78,7 +78,7 @@ public class AuthenticationController(ISender mediatr,
             confirmResult =>
             {
                 logger.LogInformation($"Email confirmed for user: {request.UserId}");
-                return Redirect("http://3.72.8.43:5173");
+                return Redirect("http://335.156.231.123:5173");
             },
             errors =>
             {
@@ -151,7 +151,7 @@ public class AuthenticationController(ISender mediatr,
             forgotPasswordRes =>
             {
                 logger.LogInformation($"Forgot password email sent for user: {email}");
-                return Redirect("http://3.72.8.43:5173");
+                return Redirect("http://35.156.231.123:5173");
             },
             errors =>
             {
